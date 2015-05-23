@@ -2,7 +2,7 @@
 (function() {
   var SPHERE_COUNT, TIMESTEP, analyser, animate, audioContext, binCount, camera, createSphere, freqByteData, hemi, i, length, levelBins, levelHistory, levelsCount, levelsData, light, renderer, request, scene, source, spheres, timeByteData, updatePhysics, world;
 
-  SPHERE_COUNT = 16;
+  SPHERE_COUNT = 32;
 
   TIMESTEP = 1 / 60;
 
@@ -10,7 +10,7 @@
 
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100);
 
-  camera.position.z = 20;
+  camera.position.z = 50;
 
   scene.add(camera);
 
@@ -26,6 +26,8 @@
 
   renderer.setSize(window.innerWidth, window.innerHeight);
 
+  renderer.setClearColor(0x333333);
+
   document.body.appendChild(renderer.domElement);
 
   world = new CANNON.World();
@@ -38,11 +40,12 @@
 
   createSphere = function(x, y, z, i) {
     var body, geometry, material, mesh, phase, shape, variance;
-    shape = new CANNON.Sphere(1);
+    shape = new CANNON.Sphere(0.7);
     body = new CANNON.Body({
       mass: 1
     });
     body.position.set(x, y, z);
+    body.velocity.set(Math.random() * 5, Math.random() * 5, z);
     body.addShape(shape);
     world.addBody(body);
     phase = Math.random() * Math.PI;
@@ -53,10 +56,14 @@
       origin.vsub(this.position, origin);
       distance = origin.norm();
       origin.normalize();
-      origin.mult(20 * distance, this.force);
-      shape.radius = 0.3 + levelsData[i] * 4;
+      origin.mult(40 * distance, this.force);
+      shape.radius = 0.3 + Math.pow(levelsData[i], 1.2) * 5;
       shape.updateBoundingSphereRadius();
       body.updateBoundingRadius();
+      material.color = new THREE.Color(0xE7112B);
+      material.color.multiply(new THREE.Color(Math.min(0xffffff, 0xffffff * (levelsData[i] + 0.3))));
+      material.specular = new THREE.Color(0xFF8585);
+      material.specular.multiply(new THREE.Color(Math.min(0xffffff, 0xffffff * (levelsData[i] + 0.3))));
       return mesh.scale.set(shape.radius, shape.radius, shape.radius);
     };
     geometry = new THREE.SphereGeometry(1, 32, 32);
@@ -75,7 +82,7 @@
     var k, ref, results;
     results = [];
     for (i = k = 0, ref = SPHERE_COUNT; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
-      results.push(createSphere(i * 2 - SPHERE_COUNT, Math.random() * 0.01, 0, i));
+      results.push(createSphere((i * 2 - SPHERE_COUNT) * 0.7, Math.random() * 0.01, Math.random(), i));
     }
     return results;
   })();
@@ -96,6 +103,7 @@
         sum += freqByteData[(i * levelBins) + j];
       }
       levelsData[i] = sum / levelBins / 256;
+      levelsData[i] *= 1 + Math.pow((i / levelsCount) * 2, 2);
     }
     world.step(TIMESTEP);
     results = [];
@@ -146,7 +154,7 @@
 
   request = new XMLHttpRequest();
 
-  request.open("GET", "sample.mp3", true);
+  request.open("GET", "sample2.mp3", true);
 
   request.responseType = "arraybuffer";
 
