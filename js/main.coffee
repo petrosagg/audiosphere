@@ -1,12 +1,15 @@
 TIMESTEP = 1 / 60
 SPHERE_COUNT = 64
 SPHERE_DIFFUSE = 0xE7112B
-SPHERE_SPECULAR = 0xFF8585
-SPHERE_SHININESS = 50
+SPHERE_SPECULAR = 0xFFffff
+SPHERE_SHININESS = 30
 SPHERE_RADIUS = 0.7
-SPHERE_MASS = 1
-SPRING_STIFFNESS = 70
+SPHERE_MASS = 5
+SPRING_STIFFNESS = 500
+SPHERE_AUDIO_SENSITIVITY = 10
+SPHERE_DAMPING = 0.9999
 BACKGROUND_COLOR = 0x333333
+FRICTION_MAGNITUDE = 10
 
 # Initialize THREE.js
 scene = new THREE.Scene()
@@ -35,25 +38,31 @@ world.solver.iterations = 10
 createSphere = (x, y, z, i) ->
     shape = new CANNON.Sphere(SPHERE_RADIUS)
     body = new CANNON.Body(mass: SPHERE_MASS)
-    body.position.set(x, y, z)
-    body.velocity.set(Math.random() * 5, Math.random() * 5, z)
+    body.position.set(x + Math.random(), y + Math.random(), z + Math.random())
+    body.velocity.set(Math.random() * 10, Math.random() * 10, Math.random() * 10)
     body.addShape(shape)
+    body.linearDamping = SPHERE_DAMPING
+    body.collisionResponse = true
     world.addBody(body)
 
     body.preStep = ->
+      shape.radius = 0.3 + Math.pow(levelsData[i], 1.2) * SPHERE_AUDIO_SENSITIVITY
+      shape.updateBoundingSphereRadius()
+
+      stiffness = 40 + Math.pow(levelsData[i], 1.2) * SPRING_STIFFNESS
+      body.linearDamping = stiffness / SPRING_STIFFNESS
+
       origin = new CANNON.Vec3(x, y, z)
       origin.vsub(this.position, origin)
       distance = origin.norm()
       origin.normalize()
-      origin.mult(SPRING_STIFFNESS * distance, this.force)
-      
-      shape.radius = 0.3 + Math.pow(levelsData[i], 1.2) * 5
-      shape.updateBoundingSphereRadius()
+      origin.mult(stiffness * distance, this.force)
+
       body.updateBoundingRadius()
-      material.color = new THREE.Color(SPHERE_DIFFUSE)
-      material.color.multiply(new THREE.Color(Math.min(0xffffff, 0xffffff * (levelsData[i] + 0.3))))
-      material.specular = new THREE.Color(SPHERE_SPECULAR)
-      material.specular.multiply(new THREE.Color(Math.min(0xffffff, 0xffffff * (levelsData[i] + 0.3))))
+      material.color = new THREE.Color(SPHERE_DIFFUSE).offsetHSL(i / SPHERE_COUNT / 4, 0, (levelsData[i] - 1) * 0.3)
+      #material.specular = new THREE.Color(SPHERE_DIFFUSE).offsetHSL(-i / SPHERE_COUNT, 0, 0.4)
+      # material.specular = new THREE.Color(SPHERE_SPECULAR)
+      # material.specular.multiply(new THREE.Color(Math.min(0xffffff, 0xffffff * (levelsData[i] + 0.3))))
 
       mesh.scale.set(shape.radius, shape.radius, shape.radius)
 
