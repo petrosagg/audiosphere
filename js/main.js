@@ -4,7 +4,7 @@
 
   TIMESTEP = 1 / 60;
 
-  SPHERE_COUNT = 32;
+  SPHERE_COUNT = 64;
 
   SPHERE_DIFFUSE = 0xE7112B;
 
@@ -24,7 +24,7 @@
 
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100);
 
-  camera.position.z = 50;
+  camera.position.z = 60;
 
   scene.add(camera);
 

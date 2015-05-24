@@ -1,5 +1,5 @@
 TIMESTEP = 1 / 60
-SPHERE_COUNT = 32
+SPHERE_COUNT = 64
 SPHERE_DIFFUSE = 0xE7112B
 SPHERE_SPECULAR = 0xFF8585
 SPHERE_SHININESS = 50
@@ -11,7 +11,7 @@ BACKGROUND_COLOR = 0x333333
 # Initialize THREE.js
 scene = new THREE.Scene()
 camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100)
-camera.position.z = 50
+camera.position.z = 60
 scene.add(camera)
 
 # soft white light
